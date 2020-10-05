@@ -24,15 +24,17 @@ plotInt = -1 # Interval (samples) between updating plot(s). Set to -1 to disable
 
 comm = MPI.COMM_WORLD
 
+pos = (0,0)
+splits = (1,1)
 # Discover the MPI settings, our own rank, and our position in the tile grid:
-mpisize, rank, splits, pos = mpi.mpiSettings(comm)
-doMpi = mpisize > 1
-if doMpi:
-    print("MPI: rank="+str(rank)+", pos="+str(pos)+", splits="+str(splits))
-    #if rank==0:
-    #    statusfile = open('status.txt', 'w')
-else:
-    print("One process only, disabling MPI communication.")
+#mpisize, rank, splits, pos = mpi.mpiSettings(comm)
+#doMpi = mpisize > 1
+#if doMpi:
+#    print("MPI: rank="+str(rank)+", pos="+str(pos)+", splits="+str(splits))
+#    #if rank==0:
+#    #    statusfile = open('status.txt', 'w')
+#else:
+#    print("One process only, disabling MPI communication.")
 
 # Initialize sim settings:
 sp = SimSettings()
@@ -66,27 +68,29 @@ if sp.modeSplittingOn:
 
 computeVerticalSpeeds(os, sp) # Calculate vertical speeds based on initial horizontal speeds
 
-
 t0 = time.time() # For timing purposes only
 
 
-if doMpi:
-    # Make note of the full model dimensions, then determine which slice this instance
-    # is going to cover.
-    fullDims = (os.imax, os.jmax, os.kmax) # Dimensions of full model domain
-    fullDepth = os.depth
-    sliceNoHalo = mpi.getSlice(splits, pos, os.imax, os.jmax)
-    slice = mpi.getSliceWithHalo(splits, pos, os.imax, os.jmax)
-    myHalo = (sliceNoHalo[0]-slice[0], slice[1]-sliceNoHalo[1], \
-              sliceNoHalo[2] - slice[2], slice[3] - sliceNoHalo[3])
-    # Slice down the model domain to the correct slice:
-    os.reduceToSlice(slice)
-else:
-    fullDims = (os.imax, os.jmax, os.kmax)  # Dimensions of full model domain
-    fullDepth = os.depth
-    slice = (0, os.imax, 0, os.jmax)
-    myHalo = None
+# if doMpi:
+#     # Make note of the full model dimensions, then determine which slice this instance
+#     # is going to cover.
+#     fullDims = (os.imax, os.jmax, os.kmax) # Dimensions of full model domain
+#     fullDepth = os.depth
+#     sliceNoHalo = mpi.getSlice(splits, pos, os.imax, os.jmax)
+#     slice = mpi.getSliceWithHalo(splits, pos, os.imax, os.jmax)
+#     myHalo = (sliceNoHalo[0]-slice[0], slice[1]-sliceNoHalo[1], \
+#               sliceNoHalo[2] - slice[2], slice[3] - sliceNoHalo[3])
+#     # Slice down the model domain to the correct slice:
+#     os.reduceToSlice(slice)
+# else:
+fullDims = (os.imax, os.jmax, os.kmax)  # Dimensions of full model domain
+fullDepth = os.depth
+slice = (0, os.imax, 0, os.jmax)
+myHalo = None
 
+rank = comm.Get_rank()
+myInputFileName = "input_"+(str(rank)).zfill(3)+".nc"
+print(myInputFileName)
 
 nSamples = int(sp.tEnd/sp.dt)
 saveIntSamples = int(sp.saveIntS/sp.dt)
@@ -144,7 +148,11 @@ for sample in range(0,nSamples):
         atmo.setAtmo(scenario, fullDims, pos, splits, slice, t, os)
 
     # Calculate T and S for next time step:
+    print(os.T[1, 17:20, 0])
+    print(os.T_next[1, 17:20, 0])
     advection.advectTempSalt(os, sp)
+    print(os.V[1, 17:20, 0])
+    print(os.T[1, 17:20, 0])
 
     # Advect passive tracer:
     if sp.passiveTracer:
@@ -167,10 +175,6 @@ for sample in range(0,nSamples):
 
     os.T[1:-1,1:-1,:] = os.T_next[1:-1,1:-1,:]
     os.S[1:-1, 1:-1, :] = os.S_next[1:-1, 1:-1, :]
-
-    # Update the halos of all tiles with updated values from neighbours:
-    if doMpi:
-        mpi.communicate(comm, rank, pos, splits, os, sp)
 
     ####################### TIME STEP DONE ########################
 
@@ -195,61 +199,6 @@ for sample in range(0,nSamples):
             print("Time = "+str(t/3600)+" h. S since last save = " + str(t1 - t0))
         t0 = t1
 
-        # Before saving, collect full model state. All ranks need to participate here:
-        if doMpi:
-            osAll = mpi.collectAll(comm, rank, pos, splits, myHalo, os, fullDims, fullDepth, sp)
-        else:
-            osAll = os
-        # The actual save is performed by rank 0 only:
-        if rank==0:
 
-            # Initialize file if this is first save:
-            if firstSave:
-                firstSave = False
-                netcdfStorage.initSaveFile(sp.saveFile, osAll.imax, osAll.jmax, osAll.kmax, osAll.depth, osAll.layerDepths)
-                #netcdfStorage.initSaveSubsetFile(sp.saveSubsetFile, 10, 20, 10, 18, 5, osAll.depth, osAll.layerDepths)
-
-            # Save state:
-            netcdfStorage.saveState(sp.saveFile, t, osAll)
-            #netcdfStorage.saveStateSubset(sp.saveSubsetFile, 10, 20, 10, 18, 5, 0, osAll)
-
-    # See if we should plot or update plots:
-    if rank==0 and plotInt > 0:
-        pltCount = pltCount+1
-        if pltCount==plotInt:
-            pltCount=0
-
-            if doMpi:
-                osAll = mpi.collectAll(comm, rank, pos, splits, myHalo, os, fullDims, fullDepth, sp)
-            else:
-                osAll = os
-            # # plt.figure()
-            # # plt.quiver(osAll.U[:,:-1,0], osAll.V[:-1,:,0])
-            # speed = np.transpose(np.multiply(osAll.U[:, :-1, 0], osAll.U[:, :-1, 0]) +
-            #                      np.multiply(osAll.V[:-1, :, 0], osAll.V[:-1, :, 0]))
-            #
-            # #g1.clear()
-            # g2.clear()
-            # g3.clear()
-            # g4.clear()
-            # #g1.pcolor(speed)
-            # p1.set_array(speed)
-            # p1.autoscale()
-            #
-            # g2.quiver(np.transpose(osAll.U[:, :-1, 0]), np.transpose(osAll.V[:-1, :, 0]))
-            # g3.pcolor(np.transpose(osAll.W[:, :, 1]))
-            # g4.pcolor(np.transpose(osAll.E[:, :]))
-            # #plt.subplot(2, 2, 1), plt.pcolor(speed), plt.colorbar()
-            # #plt.subplot(2, 2, 2), plt.quiver(np.transpose(osAll.U[:, :-1, 0]),
-            # #                                 np.transpose(osAll.V[:-1, :, 0]))
-            # #plt.subplot(2, 2, 3), plt.pcolor(np.transpose(osAll.W[:, :, 1])), plt.colorbar()
-            # #plt.subplot(2, 2, 4), plt.pcolor(np.transpose(osAll.E[:, :])), plt.colorbar()
-            #
-            #
-            # plt.draw_all()
-            # plt.draw()
-            # plt.pause(0.01)  # is necessary for the plot to update for some reason
-            #
-            # print("updated plot")
 
 

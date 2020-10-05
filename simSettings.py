@@ -54,7 +54,7 @@ class SimSettings:
         self.p_atm0 = 101000 # Atmospheric pressure(Pa)
         self.H_wave = 0.5 # Wave height(m)
         self.T_wave = 3 # Wave period(s)
-        self.windStressCoeff = 0.0002 # Multiply wind speed (m/s) by this coeff to get wind stress
+        self.windStressCoeff = 0.00015 #0.0002 # Multiply wind speed (m/s) by this coeff to get wind stress
 
         self.rho_0 = 1023.6
 

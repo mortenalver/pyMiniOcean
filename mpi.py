@@ -201,6 +201,8 @@ def collectOneVar(comm, rank, pos, splits, myHalo, fullDims, var, allVar):
                         data = np.empty((slice[1]-slice[0], slice[3]-slice[2]))
                     #print("pos=" + str((i, j)) + ", rank " + str(rank) + " receives from "+str(count)+". slice=" + str(slice)+", datadim="+str(data.shape))
                     comm.Recv([data, MPI.FLOAT], source=count, tag=count)
+                    print(data.shape)
+                    print((allVar[slice[0]:slice[0]+data.shape[0],slice[2]:slice[2]+data.shape[1],...]).shape)
                     #print("rank="+str(rank)+", received data="+str(data.shape))
                     #if i!=1 or j!=1:
                     allVar[slice[0]:slice[0]+data.shape[0],slice[2]:slice[2]+data.shape[1],...] = data
@@ -228,6 +230,8 @@ def collectAll(comm, rank, pos, splits, myHalo, os, fullDims, fullDepth, sp):
     collectOneVar(comm, rank, pos, splits, myHalo, fullDims, os.W, osAll.W)
     collectOneVar(comm, rank, pos, splits, myHalo, fullDims, os.T, osAll.T)
     collectOneVar(comm, rank, pos, splits, myHalo, fullDims, os.S, osAll.S)
+    #collectOneVar(comm, rank, pos, splits, myHalo, fullDims, os.windU, osAll.windU)
+    #collectOneVar(comm, rank, pos, splits, myHalo, fullDims, os.windV, osAll.windV)
 
     if sp.passiveTracer:
         collectOneVar(comm, rank, pos, splits, myHalo, fullDims, os.X, osAll.X)

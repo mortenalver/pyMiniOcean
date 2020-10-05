@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import netcdf
 import numpy as np
 from netCDF4 import Dataset
+import datetime
 import utils
 
 def initSaveFile(filename, imax, jmax, kmax, depth, layerDepths):
@@ -22,6 +23,10 @@ def initSaveFile(filename, imax, jmax, kmax, depth, layerDepths):
     nf.createVariable("S", "f8", ('time', 'zc', 'yc', 'xc'))
     nf.createVariable("E", "f8", ('time', 'yc', 'xc'))
     nf.createVariable("X", "f8", ('time', 'zc', 'yc', 'xc'))
+    # Variables for wind input:
+    nf.createVariable("windU", "f8", ('time', 'yc', 'xc'))
+    nf.createVariable("windV", "f8", ('time', 'yc', 'xc'))
+    # Grid and depth information:
     nf.variables['zc'][:] = layerDepths
     nf.variables['depth'][:,:] = np.transpose(depth)
     #print(nf.variables)
@@ -38,6 +43,8 @@ def saveState(filename, time, os):
     nf.variables['S'][indx,...] = np.transpose(os.S[...], (2, 1, 0))
     nf.variables['E'][indx,...] = np.transpose(os.E)
     nf.variables['X'][indx,...] = np.transpose(os.X[...], (2, 1, 0))
+    nf.variables['windU'][indx,:,0:os.imax-1] = np.transpose(os.windU[...])
+    nf.variables['windV'][indx,0:os.jmax-1,:] = np.transpose(os.windV[...])
     nf.close()
 
 
@@ -118,6 +125,9 @@ def loadSINMODState(sp, file, sample, subset=[]):
     nSamples = tim.shape[0]
     if sample < 0:
         sample = nSamples - 1
+    timeVec = tim[sample,:]
+    initTime = datetime.datetime(timeVec[0], timeVec[1], timeVec[2], timeVec[3], timeVec[4], timeVec[5])
+
     dims = nf.variables['temperature'].shape
     imax = dims[3]
     jmax = dims[2]
@@ -150,18 +160,54 @@ def loadSINMODState(sp, file, sample, subset=[]):
     os.T[os.T.mask] = 0
     os.S[os.T.mask] = 0
 
-    print(os.depth[1, 17:20])
-    print(os.U[1, 17:20, 0])
-    print(os.V[1, 17:20, 0])
-    print(os.T[1, 17:20, 0])
-
     nf.close()
 
     os.calcKmmDzz()
 
-    return os
+    return os, initTime
+
+
+# Open a SINMOD atmo data file, read and interpret all sample times as datetime objects
+def getSINMODAtmoTimes(file):
+    nf = Dataset(file, "r")
+    tim = nf.variables['time']
+    nSamples = tim.shape[0]
+    data = tim[:]
+    times = []
+    timeUnits = tim.getncattr('units')
+    nf.close()
+    try:
+        refTime = datetime.datetime.strptime(timeUnits, 'seconds since %Y-%m-%d %H:%M:%S')
+        timeStep = data[1] - data[0]
+        for d in data:
+            tt = refTime + datetime.timedelta(seconds=round(d))
+            times.append(tt)
+
+    except:
+        print("Unexpected time format in atmo file.")
+        import os
+        os.exit()
+
+    return times, timeStep
+
+
+# Read a given subset area and a given sample number of wind information from a SINMOD atmo file.
+def loadSINMODAtmo(file, sample, subset=[]):
+    nf = Dataset(file, "r")
+    tim = nf.variables['time']
+    dims = nf.variables['x_wind'].shape
+    imax = dims[2]
+    jmax = dims[1]
+    if len(subset)==0:
+        subset = [0, imax, 0, jmax]
+    WU = np.transpose(nf.variables['x_wind'][sample,subset[2]:subset[3], subset[0]:subset[1]], (1, 0)).copy()
+    WV = np.transpose(nf.variables['y_wind'][sample, subset[2]:subset[3], subset[0]:subset[1]], (1, 0)).copy()
+
+    return WU, WV
 
 def getDepthMatrix(file):
     nf = Dataset(file, "r")
     depth = np.transpose(nf.variables['depth'][:, :], (1, 0)).copy()
     return depth
+
+
