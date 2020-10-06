@@ -6,11 +6,11 @@ class SimSettings:
 
 
         # Run duration:
-        self.tEnd = 30*24*3600#3600*24*10
+        self.tEnd = 12*3600#3600*24*10
 
         # Save settings:
         self.saveIntS = 1200#1200 #180
-        self.saveFile = 'C:/temp/real_gin.nc'
+        self.saveFile = 'C:/temp/real_gin_nopar.nc'
         self.saveAvgIntS = 3600*24*5
         self.saveAvgFile = 'C:/temp/aver1.nc'
         self.saveSubsetFile = 'C:/temp/real_gin_subset.nc'

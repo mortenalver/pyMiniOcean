@@ -5,10 +5,11 @@ from superbeeAdv import superbeeAdv
 from biharmon import biharmon, biharmon2D
 import setBounds
 import math
+import mpi
 import matplotlib.pyplot as plt
 
 # Mode splitting integration scheme.
-def integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t):
+def integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t, doMpi, comm, rank):
     # Some small precalculations:
     dt = sp.dt/sp.nsub
     dtn = sp.dt
@@ -460,6 +461,8 @@ def integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t):
                     continue
                 os.E[i,j] = os.E[i,j] + dtdx*(os.HUA[i-1,j] - os.HUA[i,j] + os.HVA[i,j-1] - os.HVA[i,j])
 
+        if doMpi:
+            mpi.communicate2D(comm, rank, pos, splits, os, sp)
 
         # Update local time variable:
         t = t + dt

@@ -74,6 +74,8 @@ class OceanState:
             self.dzz = self.dzz[slice[0]:slice[1], slice[2]:slice[3], ...].copy()
             self.rho = self.rho[slice[0]:slice[1], slice[2]:slice[3], ...].copy()
 
+
+
     def calcKmmDzz(self):
         # Calculate layerDepths and midLayerDepths:
         sum = 0

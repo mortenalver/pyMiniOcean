@@ -69,6 +69,10 @@ computeVerticalSpeeds(os, sp) # Calculate vertical speeds based on initial horiz
 
 t0 = time.time() # For timing purposes only
 
+# doMpi = True
+# splits = (3, 2)
+# rank = 2
+# pos = (2, 0)
 
 if doMpi:
     # Make note of the full model dimensions, then determine which slice this instance
@@ -81,6 +85,7 @@ if doMpi:
               sliceNoHalo[2] - slice[2], slice[3] - sliceNoHalo[3])
     # Slice down the model domain to the correct slice:
     os.reduceToSlice(slice)
+
 else:
     fullDims = (os.imax, os.jmax, os.kmax)  # Dimensions of full model domain
     fullDepth = os.depth
@@ -112,6 +117,7 @@ if sp.recordAverages:
 
 #aU, aV = utils.vertAverageUBVB(os, 20, 20)
 #print("aU="+str(aU)+", aV="+str(aV))
+
 
 
 for sample in range(0,nSamples):
@@ -154,7 +160,7 @@ for sample in range(0,nSamples):
     # Calculate U, V and E for next time step. Calculation method depends on simulation settings:
     if sp.modeSplittingOn:
         # Mode splitting means a split barotropic-baroclinic integration scheme that is more efficient:
-        split.integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t)
+        split.integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t, doMpi, comm, rank)
 
         #aU, aV = utils.vertAverageUBVB(os, 20, 20)
         #print("aU=" + str(aU) + ", aV=" + str(aV))
