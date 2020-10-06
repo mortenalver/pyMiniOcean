@@ -10,7 +10,7 @@ class SimSettings:
 
         # Save settings:
         self.saveIntS = 1200#1200 #180
-        self.saveFile = 'C:/temp/real_gin_nopar.nc'
+        self.saveFile = 'C:/temp/real_gin_par.nc'
         self.saveAvgIntS = 3600*24*5
         self.saveAvgFile = 'C:/temp/aver1.nc'
         self.saveSubsetFile = 'C:/temp/real_gin_subset.nc'

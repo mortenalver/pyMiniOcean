@@ -65,7 +65,7 @@ class Real(Scenario):
 
     # The setAtmo method gets dimensions for the full domain as input, and should return
     # matrices containing the U and V components of the wind field.
-    def nonosetAtmo(self, imax, jmax, t, os):
+    def setAtmo(self, imax, jmax, t, os):
         roundedT = round(self.atmoTimeStep*round(t/self.atmoTimeStep))
         modelTime = self.initTime + datetime.timedelta(seconds=roundedT)
         tIndex = self.atmoTimes.index(modelTime)
