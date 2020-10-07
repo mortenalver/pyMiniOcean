@@ -313,11 +313,16 @@ def integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t, doMp
     os.UB[...] = UB_prelim[...]
     os.VB[...] = VB_prelim[...]
 
+    # Communicate UB/VB between processes:
+    #if doMpi:
+    #    mpi.communicate3D(comm, rank, pos, splits, os, sp)
 
     # Vertically integrated model:
     for subt in range(0, sp.nsub):
 
-
+        # Communicate 2D fields between processes:
+        if doMpi:
+            mpi.communicate2D(comm, rank, pos, splits, os, sp)
 
         deltU = np.zeros(os.HUA.shape)
         deltV = np.zeros(os.HVA.shape)
@@ -461,8 +466,7 @@ def integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t, doMp
                     continue
                 os.E[i,j] = os.E[i,j] + dtdx*(os.HUA[i-1,j] - os.HUA[i,j] + os.HVA[i,j-1] - os.HVA[i,j])
 
-        if doMpi:
-            mpi.communicate2D(comm, rank, pos, splits, os, sp)
+
 
         # Update local time variable:
         t = t + dt

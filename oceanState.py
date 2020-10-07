@@ -219,13 +219,14 @@ class OceanState:
                     self.AH[i,j,k] = min((sp.CH/sp.CM)*AM, amLim)
 
         self.AH[0,:,:] = self.AH[1,:,:]
-        self.AH[-1,:,:] = self.AH[2,:,:]
+        self.AH[-1,:,:] = self.AH[-2,:,:]
         self.AH[:,0,:] = self.AH[:,1,:]
         self.AH[:,-1,:] = self.AH[:,-2,:]
         self.AH[0,0,:] = self.AH[1,1,:]
         self.AH[0,-1,:] = self.AH[1,-2,:]
         self.AH[-1,0,:] = self.AH[-2,1,:]
         self.AH[-1,-1,:] = self.AH[-2,-2,:]
+
 
     # Calculate 2D horizontal mixing coefficients according to Smagorinsky (...)
     def calcHorizontalDiffusivitySmagorinsky2D(self, sp):
@@ -244,7 +245,7 @@ class OceanState:
                 self.AM2D[i,j] = min(AM, amLim)
 
         self.AM2D[0,:] = self.AM2D[1,:]
-        self.AM2D[-1,:] = self.AM2D[2,:]
+        self.AM2D[-1,:] = self.AM2D[-2,:]
         self.AM2D[:,0] = self.AM2D[:,1]
         self.AM2D[:,-1] = self.AM2D[:,-2]
         self.AM2D[0,0] = self.AM2D[1,1]

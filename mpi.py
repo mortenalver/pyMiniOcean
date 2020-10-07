@@ -3,8 +3,9 @@ import math
 import numpy as np
 import oceanState
 
-halo = 2 # The extra grid cells included around each tile representing the
-    # interface with neightbouring tiles
+halo = 3 # The extra grid cells included around each tile representing the
+    # interface with neightbouring tiles.
+    # Need at least 3 grid cells halo in order to avoid errors associated with horizontal diffusivity
 dummyOs = oceanState.OceanState(2, 2, 2) # Dummy OceanState object
 
 def mpiSettings(comm):
@@ -176,6 +177,11 @@ def communicate2D(comm, rank, pos, splits, os, sp):
     communicateVar(comm, rank, pos, splits, os.VA, (0, 1))
 
 
+# Do exchange of information between tiles in order to update
+# each tile's halo with correct values from their neighbours:
+def communicate3D(comm, rank, pos, splits, os, sp):
+    communicateVar(comm, rank, pos, splits, os.UB, (1, 0))
+    communicateVar(comm, rank, pos, splits, os.VB, (0, 1))
 
 
 # Collector function handling a single variable. If rank==0, this function
@@ -204,7 +210,6 @@ def collectOneVar(comm, rank, pos, splits, myHalo, fullDims, var, allVar):
                     data2 = np.empty(data.shape)
                     data2[...] = data[...]
                     comm.Send([data2, MPI.FLOAT], dest=0, tag=count)
-
             else:
                 if count > 0:
                     #print("rank 0, allVar="+str(allVar.shape)+", slice="+str(slice))

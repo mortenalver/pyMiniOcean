@@ -9,10 +9,10 @@ class Real(Scenario):
 
     os = None
 
-    sinmodInitFile = 'C:/SINMOD_operative/gin/gin_PhysStates.nc'
-    sinmodTile = [75,105, 35, 60]
-    initSample = 75
-    sinmodAtmoFile = 'C:/SINMOD_operative/gin/gin_atmo_converted.nc'
+    sinmodInitFile = None
+    sinmodTile = None
+    initSample = -1
+    sinmodAtmoFile = None
 
     initTime = None
     atmoTimes = None
@@ -20,6 +20,11 @@ class Real(Scenario):
     atmoSample = -1
 
     def initialize(self, sp):
+        self.sinmodInitFile = sp.config['realInitFile']
+        self.sinmodAtmoFile = sp.config['realAtmoFile']
+        self.initSample = sp.config['realInitSample']
+        self.sinmodTile = sp.config['realTile']
+
         sp.dt = 1200
         sp.nsub = 25
         sp.dx = 20000
@@ -37,7 +42,6 @@ class Real(Scenario):
         #self.os.dz[:] = np.array([10, 20, 20, 50, 100, 200, 300, 300, 500, 500, 500, 500])
 
         self.atmoTimes, self.atmoTimeStep = netcdfStorage.getSINMODAtmoTimes(self.sinmodAtmoFile)
-        print(self.atmoTimes)
 
 
 

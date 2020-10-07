@@ -13,11 +13,21 @@ import mpi
 import utils
 import sys
 
-#scenario = openArea.OpenArea()
-#scenario = smallScale.SmallScale()
-#scenario = upwelling.Upwelling()
-scenario = real.Real()
-#scenario = fjord.Fjord()
+# Initialize sim settings:
+sp = SimSettings()
+
+if sp.scenario == 'Real':
+    scenario = real.Real()
+elif sp.scenario == "Upwelling":
+    scenario = upwelling.Upwelling()
+elif sp.scenario == "OpenArea":
+    scenario = upwelling.OpenArea()
+elif sp.scenario == "SmallScale":
+    scenario = upwelling.SmallScale()
+elif sp.scenario == "Fjord":
+    scenario = upwelling.Fjord()
+
+
 coldStart = True
 
 plotInt = -1 # Interval (samples) between updating plot(s). Set to -1 to disable plotting.
@@ -34,8 +44,6 @@ if doMpi:
 else:
     print("One process only, disabling MPI communication.")
 
-# Initialize sim settings:
-sp = SimSettings()
 
 if coldStart:
     scenario.initialize(sp) # Set up scenario
@@ -107,17 +115,6 @@ if sp.recordAverages:
     firstAvgSave = True
     aver = calcAverage.Average(os)
 
-#if plotInt > 0:
-    # myfig = plt.figure()
-    # g1 = myfig.add_subplot(221)
-    # p1 = g1.pcolor(os.U[:,:-1,0])
-    # g2 = myfig.add_subplot(222)
-    # g3 = myfig.add_subplot(223)
-    # g4 = myfig.add_subplot(224)
-
-#aU, aV = utils.vertAverageUBVB(os, 20, 20)
-#print("aU="+str(aU)+", aV="+str(aV))
-
 
 
 for sample in range(0,nSamples):
@@ -161,7 +158,6 @@ for sample in range(0,nSamples):
     if sp.modeSplittingOn:
         # Mode splitting means a split barotropic-baroclinic integration scheme that is more efficient:
         split.integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t, doMpi, comm, rank)
-
         #aU, aV = utils.vertAverageUBVB(os, 20, 20)
         #print("aU=" + str(aU) + ", aV=" + str(aV))
     else:

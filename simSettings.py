@@ -1,17 +1,25 @@
 import oceanState, oceanStateSplit
+import json
+
 
 class SimSettings:
 
     def __init__(self):
 
+        configFile = "config/miniOceanConfig.txt"
 
+        with open(configFile) as json_data_file:
+            config = json.load(json_data_file)
+        self.config = config
+
+        self.scenario = config['scenario']
         # Run duration:
-        self.tEnd = 12*3600#3600*24*10
+        self.tEnd = 6*3600#3600*24*10
 
         # Save settings:
-        self.saveIntS = 1200#1200 #180
-        self.saveFile = 'C:/temp/real_gin_par.nc'
-        self.saveAvgIntS = 3600*24*5
+        self.saveIntS = config['saveIntS']
+        self.saveFile = config['saveFile']
+        self.saveAvgIntS = 24*3600
         self.saveAvgFile = 'C:/temp/aver1.nc'
         self.saveSubsetFile = 'C:/temp/real_gin_subset.nc'
 
@@ -27,7 +35,7 @@ class SimSettings:
         self.trcVertMix = True
         self.trcHorizMix = True
         self.passiveTracer = True
-        self.recordAverages = True
+        self.recordAverages = False
         self.implicitVerticalDiff = True # True to use implicit scheme for vertical diff og momentum in split
 
         # Mixing parameters:
