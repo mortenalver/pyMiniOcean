@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import netcdfStorage
 from oceanState import *
 from oceanStateSplit import *

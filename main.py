@@ -1,11 +1,10 @@
-import matplotlib.pyplot as plt
 import netcdfStorage
 from oceanState import *
 from oceanStateSplit import *
 from simSettings import *
 from verticalSpeeds import *
 from setBounds import *
-import openArea, smallScale, upwelling, real, fjord
+import openArea, smallScale, upwelling, real, fjord, channel
 import atmo, freshwater, advection, integration, calcAverage, split
 import time
 from mpi4py import MPI
@@ -16,19 +15,21 @@ import sys
 # Initialize sim settings:
 sp = SimSettings()
 
-if sp.scenario == 'Real':
+if sp.scenario == 'Channel':
+    scenario = channel.Channel()
+elif sp.scenario == 'Real':
     scenario = real.Real()
 elif sp.scenario == "Upwelling":
     scenario = upwelling.Upwelling()
 elif sp.scenario == "OpenArea":
-    scenario = upwelling.OpenArea()
+    scenario = openArea.OpenArea()
 elif sp.scenario == "SmallScale":
-    scenario = upwelling.SmallScale()
+    scenario = smallScale.SmallScale()
 elif sp.scenario == "Fjord":
     scenario = upwelling.Fjord()
 
 
-coldStart = True
+coldStart = sp.config['coldStart']
 
 plotInt = -1 # Interval (samples) between updating plot(s). Set to -1 to disable plotting.
 
@@ -56,7 +57,7 @@ if coldStart:
 else:
     # Load saved model state:
     scenario.initialize(sp) # Set up scenario
-    os = netcdfStorage.loadState(sp, 'f:/work/pyMiniOcean/fjord1.nc', 40) # Load OceanState from file
+    os = netcdfStorage.loadState(sp, sp.config['initFile'], -1) # Load OceanState from file
     utils.adaptDepthField(os)  # Make some adjustments to ensure the depth field works well with bounds
     scenario.os = os # Set the scenario's OceanState object
     #os.U = 0*os.U
@@ -144,7 +145,11 @@ for sample in range(0,nSamples):
 
     # Set atmo values:
     if sp.atmoOn:
-        atmo.setAtmo(scenario, fullDims, pos, splits, slice, t, os)
+        #atmo.setAtmo(scenario, fullDims, slice, t, os)
+        atmo.setAtmo(scenario, comm, fullDims, doMpi, rank, pos, splits, slice, t, os)
+
+    #import sys
+    #sys.exit()
 
     # Calculate T and S for next time step:
     advection.advectTempSalt(os, sp)

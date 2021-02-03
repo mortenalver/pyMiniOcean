@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from oceanState import *
 import math
@@ -6,8 +5,6 @@ import threading
 from utils import getUV, calcMean
 from superbeeAdv import superbeeAdv
 from biharmon import biharmon
-
-#TODO: implement Smagorinsky
 
 def isplit(imax,n):
     intervals = []

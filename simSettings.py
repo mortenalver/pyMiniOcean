@@ -14,7 +14,7 @@ class SimSettings:
 
         self.scenario = config['scenario']
         # Run duration:
-        self.tEnd = 6*3600#3600*24*10
+        self.tEnd = 10*24*3600#3600*24*10
 
         # Save settings:
         self.saveIntS = config['saveIntS']

@@ -6,7 +6,6 @@ from biharmon import biharmon, biharmon2D
 import setBounds
 import math
 import mpi
-import matplotlib.pyplot as plt
 
 # Mode splitting integration scheme.
 def integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t, doMpi, comm, rank):
@@ -313,9 +312,6 @@ def integrate(os, sp, scenario, fullDims, fullDepth, pos, splits, slice, t, doMp
     os.UB[...] = UB_prelim[...]
     os.VB[...] = VB_prelim[...]
 
-    # Communicate UB/VB between processes:
-    #if doMpi:
-    #    mpi.communicate3D(comm, rank, pos, splits, os, sp)
 
     # Vertically integrated model:
     for subt in range(0, sp.nsub):

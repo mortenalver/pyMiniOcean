@@ -256,3 +256,32 @@ def collectAll(comm, rank, pos, splits, myHalo, os, fullDims, fullDepth, sp):
         collectOneVar(comm, rank, pos, splits, myHalo, fullDims, os.X, osAll.X)
 
     return osAll
+
+
+def broadcastStatus(comm, rank, status):
+
+    return comm.bcast(status, root=0)
+
+
+def scatter2DField(comm, fullDims, fieldAll, rank, pos, splits, slice, edgOffs):
+    field = np.zeros((slice[1]-slice[0]-edgOffs[0], slice[3]-slice[2]-edgOffs[1]))
+    if rank==0:
+        # Rank 0 has fieldAll, and should send all slices to the other ranks:
+        dest = -1
+        for j in range(splits[1]):
+            for i in range(splits[0]):
+                dest = dest+1
+                if i==0 and j==0:
+                    continue # Do not need to send to myself, will fix that at the end.
+                sts = getSliceWithHalo(splits, [i, j], fullDims[0], fullDims[1])
+                data2 = np.empty((sts[1]-sts[0]-edgOffs[0], sts[3]-sts[2]-edgOffs[1]))
+                data2[...] = fieldAll[sts[0]:sts[1]-edgOffs[0], sts[2]:sts[3]-edgOffs[1]]
+                comm.Send([data2, MPI.FLOAT], dest=dest, tag=1)
+    else:
+        # Every rank>0 should receive its own slice from rank 0:
+        comm.Recv([field, MPI.FLOAT], source=0, tag=1)
+
+    if rank==0:
+        field[...] = fieldAll[slice[0]:slice[1]-edgOffs[0], slice[2]:slice[3]-edgOffs[1]]
+
+    return field

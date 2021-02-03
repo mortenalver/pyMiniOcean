@@ -1,7 +1,6 @@
 from oceanState import OceanState
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 
 # This subclass of OceanState adds extra members that are needed for a
 # mode-splitting integration scheme.

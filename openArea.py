@@ -10,10 +10,10 @@ class OpenArea(Scenario):
     bounds = {}
 
     def initialize(self, sp):
-        sp.dt = 100#120#240#18#45#15
+        sp.dt = 300#120#240#18#45#15
         sp.nsub = 10
         sp.dx = 4000
-        sp.KBi = 1e9
+        sp.KBi = 2e8#1e9
 
         self.E_floating = False
         self.U_floating = True
@@ -71,11 +71,19 @@ class OpenArea(Scenario):
                 sTop[i] = sval[k]
                 sbottom[i] = sval[k]
 
+
+        xleft = np.zeros((jmax, os.kmax))
+        for i in range(0, kmax):
+            xleft[int(np.floor(jmax/2)),i] = 1
+
         self.bounds['U'] = [buleft, np.zeros((imax-1, os.kmax)),\
                        buright, np.zeros((imax-1, os.kmax))]
         self.bounds['V'] = [np.zeros((jmax-1, os.kmax)), np.zeros((imax, os.kmax)), \
                       np.zeros((jmax-1, os.kmax)), np.zeros((imax, os.kmax))]
         self.bounds['S'] = [sleft, sbottom, sright, sTop]
+        self.bounds['X'] = [xleft, np.zeros((imax, os.kmax)),
+                            np.zeros((jmax, os.kmax)), np.zeros((imax, os.kmax))]
+
 
     def setBounds(self, imax, jmax ,kmax, fullDepth, t, os):
 

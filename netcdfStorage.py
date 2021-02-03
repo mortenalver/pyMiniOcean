@@ -1,5 +1,4 @@
 # Loading state from NetCDF file, and storing state to NetCDF
-import matplotlib.pyplot as plt
 from scipy.io import netcdf
 import numpy as np
 from netCDF4 import Dataset

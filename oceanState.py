@@ -1,7 +1,6 @@
 import numpy as np
 import math
 from utils import getUV, getUV2
-import matplotlib.pyplot as plt
 
 class OceanState:
 
