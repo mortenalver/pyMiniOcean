@@ -23,7 +23,7 @@ class Channel(Scenario):
         #self.U_floating = True
         #self.V_floating = True
 
-        self.os = sp.getOcean(70, 35, 8)
+        self.os = sp.getOcean(90, 30, 8)
         self.os.dz[:] = np.array([10, 20, 20, 50, 50, 50, 50, 50])
         self.os.depth[:] = 300
         dlevs = [25, 50, 75, 125, 175, 225, 250, 275]
@@ -80,8 +80,19 @@ class Channel(Scenario):
         bounds = {}
 
 
-        uLeft =  self.u_val*np.ones((jmax,kmax))
-        uRight = self.u_val*np.ones((jmax,kmax))
+        uLeft =  np.zeros((jmax,kmax))
+        uRight = np.zeros((jmax,kmax))
+        for j in range(0,jmax):
+            if j<=1 or j>=jmax-2:
+                uLeft[j] = 0.33*self.u_val
+                uRight[j] = 0.33 * self.u_val
+            elif j==2 or j==jmax-3:
+                uLeft[j] = 0.66 * self.u_val
+                uRight[j] = 0.66 * self.u_val
+            else:
+                uLeft[j] = self.u_val
+                uRight[j] = self.u_val
+
         # # Geostrophic speed - calc dE/dx:
         # de_dx = -self.f_par*self.u_val/9.81
         # e_span = de_dx*jmax*self.dx

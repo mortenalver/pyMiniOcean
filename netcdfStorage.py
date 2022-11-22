@@ -83,6 +83,30 @@ def saveStateSubset(filename, iStart, iEnd, jStart, jEnd, kEnd, time, os):
     nf.close()
 
 
+def initParticleFile(filename, nPart, depth):
+    dSize = np.shape(depth)
+    nf = Dataset(filename, "w", format="NETCDF3_CLASSIC")
+    t_dim = nf.createDimension('time', None)
+    p_dim = nf.createDimension('particle', (nPart))
+    x_dim = nf.createDimension("xc", dSize[0])
+    y_dim = nf.createDimension("yc", dSize[1])
+    nf.createVariable("time", "f8", ('time',))
+    nf.createVariable("depth", "f8", ('yc','xc'))
+    nf.createVariable("xpos", "f8", ('time','particle'))
+    nf.createVariable("ypos", "f8", ('time', 'particle'))
+    nf.createVariable("zpos", "f8", ('time', 'particle'))
+    nf.variables['depth'][...] = np.transpose(depth)
+    nf.close()
+
+def saveParticleState(filename, time, xpos, ypos, zpos):
+    nf = Dataset(filename, "a", format="NETCDF3_CLASSIC")
+    indx = nf.variables['time'].shape[0]
+    nf.variables['time'][indx] = time
+    nf.variables['xpos'][indx, ...] = xpos
+    nf.variables['ypos'][indx, ...] = ypos
+    nf.variables['zpos'][indx, ...] = zpos
+    nf.close()
+
 
 def loadState(sp, file, sample):
     nf = Dataset(file, "r")

@@ -214,7 +214,7 @@ class OceanState:
                         - getUV(self.U,i,j-1,k,0) - getUV(self.U,i,j+1,k,0))/sp.dx
                         + .25*(getUV(self.V,i-1,j-1,k,0) + getUV(self.V,i+1,j-1,k,0)- getUV(self.V,i-1,j,k,0)
                             - getUV(self.V,i+1,j,k,0))/sp.dx, 2))
-
+                    AM = min(AM, amLim)
                     self.AH[i,j,k] = min((sp.CH/sp.CM)*AM, amLim)
 
         self.AH[0,:,:] = self.AH[1,:,:]

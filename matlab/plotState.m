@@ -81,7 +81,9 @@ subs = 1;
 border=1;
 quivMult=2;
 %kval = [1 5 8 10];
-kval = [1 2 3 5];
+%kval = [1 2 3 5];
+kval = [3];
+nsubxy = ceil(sqrt(length(kval)));
 contourLevs = [50 75];%[200 500 1000 1500];
 for i=1:length(kval)
     k = kval(i);
@@ -89,7 +91,7 @@ for i=1:length(kval)
         continue;
     end
     figure(h2);
-    subplot(2,2,i);
+    subplot(nsubxy,nsubxy,i);
     [uu,vv, t1, t2] = interpolateUV(os.U(:,:,k), os.V(:,:,k), 1,border);
     [uus,vvs, t1s, t2s] = interpolateUV(os.U(:,:,k), os.V(:,:,k), subs,border);
     dpt = depth(border+1:subs:end-border,border+1:subs:end-border);

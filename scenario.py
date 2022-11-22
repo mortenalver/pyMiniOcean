@@ -20,6 +20,11 @@ class Scenario:
     def initPassiveTracer(self):
         return
 
+    # The initParticles method sets initial values for particles.
+    # If not overridden, no particles will be initialized.
+    def initParticles(self, os, filename):
+        return
+
     # The setBounds method gets dimensions and depth matrix for the full domain as input, and
     # should return a dictionary containing boundaries for those variables for which boundary
     # conditions are set. Each dictionary entry is keyed by the variable name, and should be a

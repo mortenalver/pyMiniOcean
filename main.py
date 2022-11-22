@@ -4,8 +4,8 @@ from oceanStateSplit import *
 from simSettings import *
 from verticalSpeeds import *
 from setBounds import *
-import openArea, smallScale, upwelling, real, fjord, channel
-import atmo, freshwater, advection, integration, calcAverage, split
+import openArea, openArea800m, smallScale, upwelling, real, fjord, channel
+import atmo, freshwater, advection, integration, calcAverage, split, particles, frsZone
 import time
 from mpi4py import MPI
 import mpi
@@ -23,13 +23,17 @@ elif sp.scenario == "Upwelling":
     scenario = upwelling.Upwelling()
 elif sp.scenario == "OpenArea":
     scenario = openArea.OpenArea()
+elif sp.scenario == "OpenArea800m":
+    scenario = openArea800m.OpenArea()
 elif sp.scenario == "SmallScale":
     scenario = smallScale.SmallScale()
 elif sp.scenario == "Fjord":
-    scenario = upwelling.Fjord()
+    scenario = fjord.Fjord()
 
 
 coldStart = sp.config['coldStart']
+particlesOn = sp.config['particles']
+partMod = None
 
 plotInt = -1 # Interval (samples) between updating plot(s). Set to -1 to disable plotting.
 
@@ -106,7 +110,7 @@ nSamples = int(sp.tEnd/sp.dt)
 saveIntSamples = int(sp.saveIntS/sp.dt)
 if rank==0:
     print("Save interval = "+str(saveIntSamples))
-saveCount = 0
+saveCount = 0#saveIntSamples - 1
 firstSave = True
 calcMixingCount = 0
 pltCount = 0
@@ -116,6 +120,11 @@ if sp.recordAverages:
     firstAvgSave = True
     aver = calcAverage.Average(os)
 
+# If particles are activated, initialize particle model:
+if particlesOn:
+    partMod = scenario.initParticles(os, sp.config['particleFile'])
+    if partMod == None:
+        particlesOn = False
 
 
 for sample in range(0,nSamples):
@@ -175,11 +184,26 @@ for sample in range(0,nSamples):
     os.T[1:-1,1:-1,:] = os.T_next[1:-1,1:-1,:]
     os.S[1:-1, 1:-1, :] = os.S_next[1:-1, 1:-1, :]
 
+
+    #if sp.modeSplittingOn:
+    #    frsZone.frsZone2D(os, os.E, sp.frsZone, True, True, True, True)
+    #    frsZone.frsZone2D(os, os.HUA, sp.frsZone, True, True, True, True)
+    #    frsZone.frsZone2D(os, os.HVA, sp.frsZone, True, True, True, True)
+    #    frsZone.frsZone2D(os, os.UA, sp.frsZone, True, True, True, True)
+    #    frsZone.frsZone2D(os, os.VA, sp.frsZone, True, True, True, True)
+    #    frsZone.frsZone3D(os, os.UB, sp.frsZone, True, True, True, True)
+    #    frsZone.frsZone3D(os, os.VB, sp.frsZone, True, True, True, True)
+
+
     # Update the halos of all tiles with updated values from neighbours:
     if doMpi:
         mpi.communicate(comm, rank, pos, splits, os, sp)
 
     ####################### TIME STEP DONE ########################
+
+    # If particles are activated, call it:
+    if particlesOn:
+        partMod.moveParticles(t, os, sp.dt, sp.dx)
 
     # If active, record and possibly save averages:
     if sp.recordAverages:

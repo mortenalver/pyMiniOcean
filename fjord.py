@@ -2,6 +2,7 @@ from scenario import *
 from oceanState import *
 from oceanStateSplit import *
 import utils
+import particles
 import math
 import numpy as np
 from scipy.interpolate import interp1d
@@ -20,8 +21,8 @@ class Fjord(Scenario):
         self.U_floating = False
         self.V_floating = False
 
-        imax = 130
-        jmax = 100
+        imax = 45
+        jmax = 38
         self.os = sp.getOcean(imax, jmax, 8)
         self.os.dz[:] = np.array([5, 5, 10, 10, 20, 50, 50, 50])
         center = (int(imax/1.8), int(jmax/2))
@@ -110,8 +111,8 @@ class Fjord(Scenario):
 
     def setBounds(self, imax, jmax ,kmax, fullDepth, t, os):
         bounds = {}
-        e_val = 2*0.66*math.sin(2*3.14*t/3600/12.2) + 0.33*math.sin(2*3.14*(t-1800)/3600/12)
-        u_val = 0.25*(0.66*math.cos(2*3.14*t/3600/12.2) + 0.33*math.cos(2*3.14*(t-1800)/3600/12))
+        e_val = 1.5*0.66*math.sin(2*3.14*t/3600/12.2) + 0.33*math.sin(2*3.14*(t-1800)/3600/12)
+        u_val = 0.5*(0.66*math.cos(2*3.14*t/3600/12.2) + 0.33*math.cos(2*3.14*(t-1800)/3600/12))
 
         eLeft = e_val*np.ones(jmax)
         eRight = 0*np.ones(jmax)
@@ -119,11 +120,11 @@ class Fjord(Scenario):
         eTop = 0*np.ones(imax)
         bounds['E'] = [eLeft, eBottom, eRight, eTop ]
 
-        #uLeft = u_val*np.ones((jmax,kmax))
-        #uRight = 0*np.ones((jmax,kmax))
-        #uBottom = 0*np.ones((imax-1,kmax))
-        #uTop = 0*np.ones((imax-1,kmax))
-        #bounds['U'] = [uLeft, uBottom, uRight, uTop ]
+        uLeft = u_val*np.ones((jmax,kmax))
+        uRight = 0*np.ones((jmax,kmax))
+        uBottom = 0*np.ones((imax-1,kmax))
+        uTop = 0*np.ones((imax-1,kmax))
+        bounds['U'] = [uLeft, uBottom, uRight, uTop ]
 
         vLeft = 0*np.ones((jmax-1,kmax))
         vRight = 0*np.ones((jmax-1,kmax))
@@ -165,3 +166,12 @@ class Fjord(Scenario):
         return [self.rpos,], ["east",], [(2000, 5, 0),]
 
 
+
+    def initParticles(self, os, filename):
+        nPart = 100
+        partMod = particles.Particles(os, nPart, filename)
+        for i in range(0,nPart):
+            partMod.xpos[i] = 5 + random.uniform(0., 30.)
+            partMod.ypos[i] = 13 + 0.15*i
+            partMod.zpos[i] = 1
+        return partMod

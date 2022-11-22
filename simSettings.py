@@ -31,12 +31,14 @@ class SimSettings:
         self.coriolisOn = True
         self.atmoOn = True
         self.advectiveTermsOn = True # 1 to include advective terms in momentum equation, 0 to disable
-        self.biharmonic = True # 1 to use biharmonic friction of horizontal velocities. 0 to use Smagorinsky
+        self.biharmonic = False # 1 to use biharmonic friction of horizontal velocities. 0 to use Smagorinsky
         self.trcVertMix = True
         self.trcHorizMix = True
         self.passiveTracer = True
         self.recordAverages = False
         self.implicitVerticalDiff = True # True to use implicit scheme for vertical diff og momentum in split
+
+        self.frsZone = 3
 
         # Mixing parameters:
         self.calcMixingInterval = 1
@@ -48,8 +50,8 @@ class SimSettings:
         # Bottom friction:
         self.C_b = 2.5e-3 # taken from SINMOD's splitt_v7
         self.CM = 1.0 # For Smagorinsky
-        self.CH = 0.4 # For Smagorinsky
-        self.CM2D = 1.0  # For Smagorinsky
+        self.CH = 0.25*0.1 # 0.4 # For Smagorinsky
+        self.CM2D = 0.25*0.25 # 1.0  # For Smagorinsky
         # Coriolis parameters:
         self.omega = 0.7292e-4 # Earth rotational speed(rad / s)
         self.latitude = 73

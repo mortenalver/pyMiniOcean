@@ -13,7 +13,7 @@ class OpenArea(Scenario):
         sp.dt = 300#120#240#18#45#15
         sp.nsub = 10
         sp.dx = 4000
-        sp.KBi = 2e8#1e9
+        sp.KBi = 2e7#2e8#1e9
 
         self.E_floating = False
         self.U_floating = True
